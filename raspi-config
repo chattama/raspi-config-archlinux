@@ -25,24 +25,23 @@ you have heavily customised your installation.\
 }
 
 do_expand_rootfs() {
-  if [ ! -x /usr/bin/parted ]; then
+  if [ ! -x /usr/sbin/parted ]; then
     whiptail --msgbox "Please install 'parted' package." 20 60 2
     return 1
   fi
   if [ -b /dev/mmcblk0 ]; then
     DEV_ROOT_DISK=/dev/mmcblk0
-    DEV_ROOT_PART=${DEV_ROOT}p
+    DEV_ROOT_PART=${DEV_ROOT_DISK}p2
   else
     DEV_ROOT_DISK=/dev/sda
-    DEV_ROOT_PART=${DEV_ROOT}
+    DEV_ROOT_PART=${DEV_ROOT_DISK}2
   fi
   # Get the starting offset of the root partition
-  PART_START=$(parted $DEV_ROOT_DISK -ms unit s p | grep "^2" | cut -f 2 -d:)
-  DEV_ROOT_PART=${DEV_ROOT_PART}${PART_START}
+  PART_START=$(parted ${DEV_ROOT_DISK} -ms unit s p | grep "^2" | cut -f 2 -d:)
   [ "$PART_START" ] || return 1
   # Return value will likely be error for fdisk as it fails to reload the 
   # partition table because the root fs is mounted
-  fdisk $DEV_ROOT_DISK <<EOF
+  fdisk ${DEV_ROOT_DISK} <<EOF
 p
 d
 2
